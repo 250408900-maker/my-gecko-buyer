@@ -33,6 +33,9 @@ curl -s -D "$H" -o /dev/null -X POST "$URL" \
   -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' \
   -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"curl","version":"0"}}}'
 SID=$(grep -i '^mcp-session-id:' "$H" | tr -d '\r' | cut -d' ' -f2)
+curl -s -o /dev/null -X POST "$URL" -H 'Content-Type: application/json' \
+  -H 'Accept: application/json, text/event-stream' -H "mcp-session-id: $SID" \
+  -d '{"jsonrpc":"2.0","method":"notifications/initialized"}'
 curl -s -X POST "$URL" -H 'Content-Type: application/json' \
   -H 'Accept: application/json, text/event-stream' -H "mcp-session-id: $SID" \
   -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"list_surfaces","arguments":{}}}'
