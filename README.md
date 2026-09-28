@@ -1,72 +1,69 @@
-# Dev3Pack final project
+# Dev3Pack capstone
 
 ![Python](https://img.shields.io/badge/python-3.11+-blue)
 ![uv](https://img.shields.io/badge/uv-managed-6e56cf)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Claude Code](https://img.shields.io/badge/Claude_Code-ready-orange)
 
-One repository that becomes **yours**. One project a day. One thing you can demo at the end and explain when it breaks.
+Your capstone, in one repository that becomes **yours**: a research assistant that
+answers from six documents, cites the one it used, and refuses what they do not
+support. You build it here, grade it here, hand it in from here, and defend it from
+here in session 15.
 
-**Week 3, 28 September to 2 October 2026.** Optional showcase on Saturday 3 October.
+**[CAPSTONE.md](CAPSTONE.md) is the complete tutorial**: what it is, every command in
+order, how the capstone notebook connects to it, how you hand it in, and how you read
+your score.
 
-This repository is your **final project**: a store, the Gecko MCP, and a buyer. It is your
-portfolio piece, and you show it at the showcase if you want to. Nothing in it is scored.
-
-It is **not your capstone**. The capstone is the certificate: a research assistant, in a
-different repository that `bootcamp capstone new` makes for you in the course folder. It is
-graded privately and you defend it in session 15. Keep the two apart. The GitHub name of
-this template still says "Capstone-Project"; that is the template's name, not what it is for.
-
-Weekly challenge 2 (your store and a buyer) is done, checked and submitted from the
-**course folder**, not from here. See [project 00](projects/00-your-store-and-buyer/README.md).
+The tests and the grader are the course's. They come from the
+[cohort repository](https://github.com/Gecko-Academy/dev3pack-cohort-2026-09) as a
+package, pinned in `uv.lock`. The code they judge is yours.
 
 ## Contents
 
 - [Start here](#start-here)
 - [Make it yours](#make-it-yours)
+- [The optional track: your store, the MCP, a buyer](#the-optional-track-your-store-the-mcp-a-buyer)
 - [Get each day's project](#get-each-days-project)
 - [Repository map](#repository-map)
-- [What you ship](#what-you-ship)
 - [For coding assistants](#for-coding-assistants)
 - [Commands](#commands)
 - [Safety](#safety)
 
 ## Start here
 
-```bash
-git clone https://github.com/Gecko-Academy/Dev3Pack-Gecko-Capstone-Project.git my-final-project
-cd my-final-project
-```
+In the folder that holds your course folder, so the two sit side by side:
 
-That is the whole setup. There is nothing to install yet: each project says what it
-needs, and none of them needs an API key.
+```bash
+git clone https://github.com/Gecko-Academy/Dev3Pack-Gecko-Capstone-Project.git my-capstone
+cd my-capstone
+uv sync
+uv run pytest                     # 4 passed, 2 skipped, 3 xfailed
+uv run bootcamp capstone grade    # 3/10 on the offline fake model: the starting line
+```
 
 **Windows:** run these in **Git Bash** or WSL2, not PowerShell.
 
-If you have SSH keys set up,
-`git clone git@github.com:Gecko-Academy/Dev3Pack-Gecko-Capstone-Project.git my-final-project`
-works too. HTTPS is above because it needs nothing configured first.
-
 ## Make it yours
 
-Five minutes, once. This repository is a starting point, not a place you hand work in.
-After these two commands it is your repository: your commits, your name on it, yours to
-show anybody.
-
-You need the [GitHub CLI](https://cli.github.com/), signed in with `gh auth login`.
+Once, before your first commit. You need the [GitHub CLI](https://cli.github.com/),
+signed in with `gh auth login`.
 
 ```bash
-git remote rename origin upstream                                  # ours: the daily projects
-gh repo create my-final-project --private --source=. --remote=origin --push   # yours
+git remote rename origin upstream                                          # ours
+gh repo create my-capstone --public --source . --remote origin --push      # yours
 ```
 
-Use `--public` instead of `--private` if you want it visible now. You can switch either
-way later.
+**Public**, because your submission links to your code and you defend from it. It is
+not a fork, on purpose: it is a repository in its own right that started from ours.
+`capstone submit` refuses while `origin` still points at this template.
 
-**This is not a fork, on purpose.** A fork stays attached to ours: GitHub labels it
-"forked from Gecko-Academy" and its stars and issues point back here. Yours is a
-repository in its own right that happens to have started from ours. Rename it, make it
-private, make it public, delete it. None of that touches this one.
+## The optional track: your store, the MCP, a buyer
+
+`projects/` holds one small project per day of week 3: a store, the Gecko MCP, and a
+buyer. It is your portfolio piece for the optional showcase on Saturday 3 October.
+**Nothing in `projects/` is scored.** Weekly challenge 2 (your store and a buyer) is
+still done and submitted from the **course folder**; see
+[project 00](projects/00-your-store-and-buyer/README.md).
 
 ## Get each day's project
 
@@ -91,10 +88,17 @@ and nothing is lost.
 
 | Path | What is in it |
 |---|---|
-| `projects/` | one folder per day, each with its own README |
-| `PRD.md` | the product note for the final project: the problem, the scope, the journey, the success numbers |
-| `.claude/` | skills and agents Claude Code loads in this folder, e.g. `gecko-connect-mcp`, `gecko-solana-read` |
-| `docs/` | `working-with-claude.md` (prompts and habits) and `adr/` (a template for your decision records) |
+| `CAPSTONE.md` | the complete capstone tutorial |
+| `agent.py` | your agent, `YourAgent`: what the grader and the defence judge |
+| `tests/` | the contract tests: green as shipped, and they must stay green |
+| `data/corpus/` | the six documents your agent answers from. Never write to them. |
+| `docs/` | `ISSUES.md`, `EVAL_REPORT.md`, `RETENTION.md`, `SKILL.md`, `adr/`, and `README-TEMPLATE.md` for your showcase README |
+| `pyproject.toml`, `uv.lock` | the course package, and the exact course commit you run |
+| `.github/workflows/check.yml` | CI: the tests and the practice grader on every push, no keys |
+| `projects/` | the optional track, one folder per day, each with its own README |
+| `PRD.md` | the product note for the optional track: the problem, the scope, the journey, the success numbers |
+| `.claude/` | skills and agents Claude Code loads in this folder: `ship-my-capstone` for the capstone, `gecko-connect-mcp` and `gecko-solana-read` for the optional track |
+| `docs/working-with-claude.md` | prompts and habits for working with an assistant |
 | `workflows/` | `survey.py` grades several candidate APIs in parallel and refuses the ones that are not ready; sample specs and recorded output included |
 | `AGENTS.md` | what a coding assistant should know about this repository |
 | `README.md` | this page |
@@ -114,6 +118,9 @@ able to read this repository without you in the room and know:
 A demo that only works on the happy path is worth less than one with a failure you can
 explain. Break it on purpose before somebody else does.
 
+The README sections, in order, are in [CAPSTONE.md, section 11](CAPSTONE.md#11-your-readme-for-the-showcase),
+and the six minutes of the defence in [section 12](CAPSTONE.md#12-the-defence).
+
 ## For coding assistants
 
 `AGENTS.md` tells an assistant what this repository is and how to help with it. Claude
@@ -130,7 +137,11 @@ you are, and slower at knowing what you meant.
 
 | Command | What it does |
 |---|---|
-| `git pull upstream main` | fetch the next day's project |
+| `uv run pytest` | the contract tests |
+| `uv run bootcamp capstone grade` | your agent on the 10 practice questions |
+| `uv run bootcamp capstone trace "..."` | one question, every step your agent took |
+| `uv run bootcamp capstone submit --github <you>` | hand in the final assignment (CAPSTONE.md, section 8) |
+| `git pull upstream main` | fetch the next day's optional project |
 | `git push` | push your own work to your own repository |
 | `gh repo view --web` | open your repository in a browser |
 

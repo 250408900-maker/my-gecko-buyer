@@ -4,23 +4,25 @@ This file tells a coding assistant what this repository is and how to help with 
 
 ## Purpose
 
-A student's own **final project** for the Dev3Pack AI-Engineering bootcamp: a store, the
-Gecko MCP, and a buyer. It starts as a clone of a course-provided repository and becomes
-the student's own: they push it to their own GitHub account (suggested name
-`my-final-project`) and add one project per day of week 3. It is their portfolio piece,
-shown at the optional showcase on Saturday 3 October.
+A student's own **capstone** for the Dev3Pack AI-Engineering bootcamp: a research
+assistant that answers from the six documents in `data/corpus/`, cites the one it used,
+and refuses what they do not support. It starts as a clone of a course-provided
+repository and becomes the student's own public repository (suggested name
+`my-capstone`). [CAPSTONE.md](CAPSTONE.md) is the complete tutorial; send the student
+there before improvising.
 
-Nothing in this repository is scored. This repository has no `bootcamp` command.
-
-- **Weekly challenge 2** (the store and the buyer) is done, checked and submitted from the
-  course folder: the session 10 notebook or `demos/10_your_store_and_buyer.ipynb`, then
-  `uv run bootcamp submit ch10 --github <handle> --push`. `store.json` travels with that
-  submission. Project 00 here describes it; it is not checked here.
-- **The capstone** is the certificate: a research assistant, in a different repository
-  made by `bootcamp capstone new`, graded privately and defended in session 15.
-
-Do not conflate the three. If a student asks for a score, the answer is the course
-folder, not this repository.
+- **What is judged:** `agent.py` (`YourAgent`), by the course's grader
+  (`uv run bootcamp capstone grade` for practice, `uv run bootcamp capstone submit` for
+  the final set) and by the session 15 defence. The grader comes from the course package
+  pinned in `uv.lock`; never edit it, and never tune on anything from the private set.
+- **The contract tests** in `tests/` pass as shipped and must stay green. An `xfail`
+  that starts passing wants its marker removed, not a rewritten test.
+- **The capstone notebook** (`cap01`) is in the student's course folder, not here. Its
+  `cap01-e5` takes the top three rows of this repository's `docs/ISSUES.md`.
+- **`projects/`** is an optional, unscored track (a store, the Gecko MCP, a buyer).
+  Weekly challenge 2 is submitted from the course folder, not from here.
+- If a student asks for a score: the practice score is `capstone grade` here; the final
+  score is `finals/<github>/result.json` in `Gecko-Academy/dev3pack-submissions`.
 
 Gecko, in the founder's words: how an agent moves money on Solana and proves it landed as
 asked. Never describe it as an "API comprehension layer"; that line is retired.

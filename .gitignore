@@ -3,7 +3,6 @@ __pycache__/
 *.py[cod]
 .venv/
 venv/
-.python-version
 
 # Secrets. Never commit one; there is nothing here that needs one.
 .env
@@ -19,3 +18,10 @@ keypair*.json
 .pytest_cache/
 .mypy_cache/
 .DS_Store
+
+# The grader's output: evidence about one run, regenerated every time.
+score_report.json
+grade.txt
+
+# The course, checked out to run the grader.
+.course/
