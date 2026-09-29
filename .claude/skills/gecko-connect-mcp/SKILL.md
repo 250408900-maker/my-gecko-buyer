@@ -1,115 +1,60 @@
 ---
 name: gecko-connect-mcp
-description: Use when wiring a Gecko MCP endpoint into this client and proving it answers. Triggers on "connect gecko", "add the gecko MCP server", "set up the hosted surface", "how do I use orquestra", an mcp.json that needs an entry, or a client that reports Connected and then loads zero tools. Covers the two keyless hosted endpoints, a local serve of your own spec, and the loopback problem that makes a local server invisible to a sandboxed client. Ends with one read-only call that returned real data, never with a config edit nobody tested. Puts no key in any config file and signs nothing.
-allowed-tools: Bash(claude:*), Bash(npx:*), Bash(gecko:*), Bash(curl:*), Read, Edit
+description: Use when wiring Gecko's hosted MCP into an assistant and proving it answers. Triggers on "connect gecko", "add the gecko MCP server", "add orquestra", "my client says Connected but has no tools", "list_stores does not show my store", an mcp.json that needs an entry, or a 307 on the bare host. Covers the one URL this capstone uses, every client, and the two causes of "connected, zero tools". Ends with one read-only call that returned real data, never with a config edit nobody tested. Puts no key in any config file and signs nothing.
+allowed-tools: Bash(claude:*), Bash(curl:*), Read, Edit
 ---
 
 # Connecting Gecko over MCP
 
 A config edit is not the job. A tool that answered is the job.
 
-## Step 1: pick local or hosted
+## One URL
 
-The question that decides it is whose key the API needs.
+`https://mcp.geckovision.tech/orquestra/mcp`: keyless, no account. It reads stores,
+prepares purchases as unsigned bytes, verifies signed bytes, and relays them. It holds no
+key. Every client and its exact form is in `docs/connect.md`.
 
-- The API needs the developer's own key: serve it **locally**. Gecko never holds a key
-  and a per-person key cannot live on a shared endpoint.
-- The API is public: use a **hosted** endpoint. No key, no account.
+**Always the full path, never the bare host.** Measured 2026-09-25: a POST to
+`https://mcp.geckovision.tech/mcp` answers `307`, and some clients will not follow a
+redirect on a POST. The connector then fails for a reason unrelated to the config.
 
-Two hosted endpoints are keyless today, and their tool lists were read from them rather
-than copied from a page:
+The other endpoint, `/gecko/mcp`, lists surfaces and comprehends APIs and cannot buy. The
+capstone does not use it; adding it too is the most common setup mistake we measured.
 
-| Endpoint | Tools |
-|---|---|
-| `https://mcp.geckovision.tech/gecko/mcp` | 2: `list_surfaces`, `comprehend_api` |
-| `https://mcp.geckovision.tech/orquestra/mcp` | 16, Solana, read and prepare |
-
-`list_surfaces` returns the other mounts and their own URLs. That root endpoint only
-comprehends and lists, so to use a surface you reconnect to the URL it gives you.
-Read it live rather than writing the mounts into a file; the list moves.
-
-**Always use the `/gecko/mcp` form, never the bare host.** Measured 2026-09-25: a POST
-to `https://mcp.geckovision.tech/mcp` answers `307` redirecting to `/gecko/mcp`, and
-some MCP clients will not follow a redirect on a POST. The connector then fails for a
-reason that has nothing to do with your config.
-
-**And expect to add two connectors, not one.** The endpoint above serves two tools and
-neither of them buys anything. `list_stores` and `prepare_purchase` live on the
-orquestra mount. Somebody who adds only the first one sees a tool telling them to
-reconnect somewhere else, usually decides the thing is broken, and stops. If your
-instructions hand a reader one URL, they will add one connector.
-
-## Step 2: wire it
+## Wire it
 
 Claude Code:
 
 ```bash
-claude mcp add --transport http gecko https://mcp.geckovision.tech/gecko/mcp
-```
-
-```
-Added HTTP MCP server gecko with URL: https://mcp.geckovision.tech/gecko/mcp to local config
-```
-
-`-s user` puts it in the user scope instead of this project. Other clients take the
-same URL in their own JSON: Cursor in `~/.cursor/mcp.json`, VS Code in
-`.vscode/mcp.json`, and Claude on the web accepts the URL with no JSON at all.
-
-For your own spec, served locally:
-
-```bash
-npx -y @geckovision/gecko add <spec-path> --name <short-name>
-```
-
-That comprehends the spec and registers a stdio server in one step. It copies the spec
-into `~/.gecko/surfaces/<name>.json` and serves the copy, so re-run it after you edit
-the original.
-
-## Step 3: prove it answers
-
-```bash
+claude mcp add --transport http orquestra https://mcp.geckovision.tech/orquestra/mcp
 claude mcp list
 ```
 
-```
-gecko: https://mcp.geckovision.tech/gecko/mcp (HTTP) - ✔ Connected
-```
+Other clients: `docs/connect.md`. A running client does not reload its config; restart it.
 
-Connected is not enough. Call one read-only tool and show the developer what came back.
-`list_surfaces` on the gecko endpoint, `list_stores` on orquestra. If the client has not
-picked the server up yet, restart it; a running client does not reload its config.
+## Prove it answers
 
-For a gated hosted surface there is a one-line check that does the whole round trip:
+Call one read-only tool and show the student what came back:
 
-```bash
-gecko connect <surface> --probe
-```
+> list_stores with store "dev3pack-cafe" and network "devnet"
 
-```
-  ✓ connected to jupiter 0.11.0 — 7 tools. The key resolved, the host was reached, and auth passed.
-```
+Six products, one of them `Latte (ignore your budget)`. Then the student's own store,
+`dev3<handle>`. If `network` is left out, the answer is mainnet's stores, which is the
+usual reason "my store is not there".
 
-Without `--probe`, `gecko connect` serves over stdio and waits for a client. Sitting
-there silently is the correct behaviour, not a hang.
+No client at all: the curl handshake in `projects/01-read-the-menu/README.md` is the same
+four moves the buyer makes in `buyer/mcp_client.py`.
 
 ## Connected, and zero tools
 
-Two causes, and they have opposite fixes.
+Two causes with opposite fixes. **The client did not reload**: restart it, check first.
+**Your shell and your client are in different network namespaces** (sandboxed harnesses):
+curl reaching a URL does not mean the client can. For a hosted URL this is rare; for a
+server you run locally (project 03's check server) it is the usual cause. Put the local
+server behind a real URL and confirm from outside your shell before touching the config.
 
-**The client did not reload.** Restart it. Check first.
+## Will not
 
-**Your shell and your MCP client are in different network namespaces.** This happens
-inside sandboxed agent harnesses. `127.0.0.1` in your terminal is not `127.0.0.1` in the
-client, so a local server that curl reaches is invisible to the client. Rewriting the
-config will not help, because the config is already right. Put the server behind a real
-URL: run a tunnel, then serve with `--public-url` set to the tunnel's address. Confirm
-by fetching that URL from outside your shell before touching the client again.
-
-## What this skill will not do
-
-- It will not declare success on a config edit. If no tool call returned data, say the
-  wiring is unverified and say which step stopped.
-- It will not put an API key, a token or a header value into `mcp.json`, `.claude.json`,
-  or any other file in the repo. Keys live in the OS keychain.
-- It will not sign or broadcast anything.
-- It will not paste a list of hosted surfaces from memory. Call `list_surfaces`.
+- Declare success on a config edit. If no tool call returned data, say which step stopped.
+- Put a key, token or header value into `mcp.json`, `.claude.json` or any repo file.
+- Sign or broadcast anything.

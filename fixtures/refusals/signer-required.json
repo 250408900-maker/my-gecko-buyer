@@ -1,0 +1,82 @@
+{
+  "tool": "prepare_purchase",
+  "arguments": {
+    "store": "dev3pack-cafe",
+    "product": "Espresso",
+    "network": "devnet"
+  },
+  "answer": {
+    "refused": true,
+    "code": "signer-required",
+    "reason": "Order valid: Espresso at 1 from dev3pack-cafe on devnet. Signer required to continue: no wallet address to buy from, and this is not something to ask the human for as a raw string \u2014 get it from a signer. Gecko never holds a key: it plans and checks the transaction, and something else signs it. Add one of the signers below, ASK IT for the wallet address, FUND that address with the price plus a little SOL for the fee, then call this again with that address as `buyer`. No clock has started: nothing was built on this call. The call that carries `buyer` starts a ~60-second clock, so do all of the above BEFORE re-calling; a buyer sent off to install something after that call is holding bytes that die while they read.",
+    "blocker_kind": "signer",
+    "order": {
+      "store": "dev3pack-cafe",
+      "product": "Espresso",
+      "price_ui": "1",
+      "mint": "Eoqdd43nFQ9HzGq8HjBRVLCV6aTqCFRiwHy1ZVQheYSi",
+      "network": "devnet",
+      "order_valid": true
+    },
+    "signers": [
+      {
+        "name": "PayBox",
+        "call": "request_wallet_sign, op=\"solanaTransaction\", transactionBase64",
+        "reaches": "Claude web, ChatGPT, Gemini, Grok \u2014 hosted MCP connector",
+        "connector": "https://api.paybox.sh/mcp",
+        "how_to_add": "Settings -> Connectors -> add a custom connector with that URL, then Connect and sign in. No API key to copy; it is an OAuth flow.",
+        "sequence": [
+          "list_credentials -> pick the `wallet` credential; its metadata.address IS the `buyer` for prepare_purchase, and its `credential_id` is what signs",
+          "NO wallet credential in the list? The account has no wallet yet: PayBox creates one at enrolment, which is the user signing in to the connector (a passkey step only the user can do) - ask them to Connect/sign in at the PayBox connector, then re-run list_credentials. An agent cannot create the wallet itself, and never asks the user to paste key material",
+          "READ ITS `approval_mode` NOW, before preparing anything \u2014 see below",
+          "prepare_purchase (this tool) once the buyer has chosen",
+          "request_wallet_sign {credential_id, intent: {op: \"solanaTransaction\", address, transactionBase64}} -> returns a request_id, NOT a signature",
+          "poll get_request(request_id) until `output.signedTransactionBase64` \u2014 never re-call request_wallet_sign to finish one, that starts a second operation",
+          "verify_signed_transaction (Gecko) with the signed bytes, `binding`, `binding_strength: exact`, `expires.last_valid_block_height` and `submit.rpc_url` \u2014 cheap, and it catches a signer that returned other bytes or a window that closed while you polled, BEFORE a broadcast",
+          "submit_transaction (Gecko) with the signed bytes + the `binding` and `expires.last_valid_block_height` from the prepare result \u2014 it verifies the binding (non-droppable), sends, and rebroadcasts the same bytes until confirmed or the budget is spent. No shell needed. Only if you cannot call it: sendTransaction {maxRetries: 0} and resubmit the SAME bytes every ~2s until confirmed or the height passes the budget",
+          "IF A SIGNER TOOL RETURNS AN ERROR, RECONCILE BEFORE ANY RETRY: an error response is a claim, not a fact \u2014 a signer has returned 'no approval' for an operation that then SUCCEEDED (measured). Check the request's state (get_request / list_requests) AND the chain (getSignatureStatuses) before creating a second operation; a blind retry of a money call is how one purchase becomes two"
+        ],
+        "headless": {
+          "for": "code agents and CI (no chat window to render the signer in)",
+          "sdk": "@paybox-sh/sdk \u2014 PayboxClient({baseUrl, token, signingKey})",
+          "credentials_from": "PAYBOX_TOKEN (the OAuth bearer) + PAYBOX_SIGNIN_KEY (the pbxk1. signing key), from the OS keychain or server env \u2014 never from a chat prompt, never pasted to any Gecko surface",
+          "call": "client.requestWalletSign({credentialId, intent: {op: 'solanaTransaction', address, transactionBase64}}, {autoSign: true}) -> status 'success' with output.signedTransactionBase64 in-process",
+          "note": "an autonomous grant + the signing key completes with no window and no human in the loop; the key stays in PayBox MPC, Gecko still never signs or holds it"
+        },
+        "approval_mode_matters": "`always_approve` means every signature waits for the user's passkey, and that wait sits INSIDE the ~60s blockhash window \u2014 it is the most likely way to lose one. On that mode, get the approval settled BEFORE calling prepare_purchase, never after. `autonomous` returns `pending_signature` and signs immediately, which is the mode this flow is comfortable in.",
+        "funding": "an empty wallet: PayBox's `get_buy_link` returns a signed MoonPay checkout URL that delivers to this credential's address. Fund the price PLUS a little SOL for the fee, and note the buyer also pays ~0.00204 SOL of rent if their token account for the mint does not exist yet."
+      },
+      {
+        "name": "Orquestra signer MCP",
+        "call": "sign_transaction, or sign_and_send_transaction",
+        "reaches": "Claude Desktop, Cursor, Claude Code \u2014 a local stdio server",
+        "connector": "npx @orquestradev/signer-mcp",
+        "how_to_add": "a LOCAL server: add it to your client's MCP config. It fronts twelve @solana/keychain backends \u2014 memory, Turnkey, Privy, Fireblocks, DFNS, AWS/GCP KMS, HashiCorp Vault, CDP, Crossmint, Openfort, Para \u2014 so a team that already has key management keeps it and adds nothing.",
+        "pass_our_binding": "pass `binding` (from this result) and `binding_strength: \"exact\"` to sign_transaction. It recomputes the digest over the message and refuses if the bytes are not the ones we simulated \u2014 verification the signer enforces, rather than a step an agent can skip.",
+        "version_note": "the published npm package (0.1.3) PREDATES the binding parameter and ignores it silently \u2014 passing a binding to it neither refuses nor errors. Until a release ships it, install from the repository if you want the refusal; without it this is a signer like any other here.",
+        "sequence": [
+          "get_signer_address -> the address that will sign; use it as `buyer`",
+          "prepare_purchase (this tool) once the buyer has chosen",
+          "sign_transaction {transaction, binding, binding_strength: \"exact\"} \u2014 it refuses rather than signing bytes we did not simulate",
+          "verify_signed_transaction (Gecko) with the signed bytes and the same `binding` \u2014 cheap, and it is the check that does not depend on which signer produced them",
+          "submit_transaction (Gecko) with the signed bytes, the `binding` and `expires.last_valid_block_height` \u2014 it re-verifies, sends, and rebroadcasts the same bytes until confirmed"
+        ],
+        "prefer_sign_transaction": "`sign_and_send_transaction` broadcasts in the same call, which skips verify_signed_transaction and the rebroadcast budget. Use it only if you cannot call submit_transaction, and pass the `binding` either way."
+      },
+      {
+        "name": "Phantom MCP",
+        "call": "signTransaction",
+        "reaches": "Claude Desktop, Cursor, Claude Code \u2014 not Claude web",
+        "connector": "npx @phantom/mcp-server",
+        "how_to_add": "a LOCAL server: add it to your client's MCP config. Being local is why it does not reach Claude web, and why your key never leaves your machine."
+      },
+      {
+        "name": "Privy agent-wallet CLI",
+        "call": "signTransaction, {\"transaction\": \"<base64>\"}",
+        "reaches": "anywhere a shell runs",
+        "connector": "pnpm --package=@privy-io/agent-wallet-cli dlx privy-agent-wallet",
+        "how_to_add": "run its `login` on your own machine, then call `signTransaction`."
+      }
+    ]
+  }
+}

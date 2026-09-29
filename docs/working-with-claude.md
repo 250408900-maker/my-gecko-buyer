@@ -112,7 +112,7 @@ in a refactor, and you cannot review what you did not ask for.
 ### 6. Explain it back before it goes in the demo
 
 ```
-Explain my buyer's quantity check to me as if I have to defend it live on Saturday and
+Explain my buyer's quantity check to me as if I have to defend it live on Friday and
 somebody asks why zero is refused but 0.5 is a different error. Use my actual variable
 names. If the code does not actually do what you are describing, say so instead.
 ```

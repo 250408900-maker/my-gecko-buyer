@@ -93,16 +93,15 @@ this repository cannot run it standalone: it needs a client that can dispatch su
 such as Claude Code. So here is the pattern and the exact ask, described as a pattern
 rather than dressed up as a script.
 
-Three agents live in `.claude/agents/`. Two of them do independent work and can run at
-the same time. The third reviews what they produced and has to run after.
+One agent lives in `.claude/agents/`: `call-reviewer`, which reviews and never writes.
+The pattern is two independent pieces of work in parallel, then that reviewer over both.
 
 Ask for it in one message, naming the parallelism, because an agent told to do three
 things will do them in order unless you say otherwise:
 
-> Use the spec-recovery agent on https://example.com/docs and the api-integrator agent
-> on workflows/specs/receipts.json. Run them in parallel, they do not depend on each
-> other. When both are done, run the call-reviewer agent over everything they produced
-> and give me its findings without fixing anything.
+> Run `uv run buyer --cases --recorded` and `uv run buyer --cards --recorded` in
+> parallel, they do not depend on each other. When both are done, run the call-reviewer
+> agent over the output and the code, and give me its findings without fixing anything.
 
 The shape is the same as the script: independent work in parallel, then one stage that
 judges the output. The difference is that `call-reviewer` has no `Write` and no `Edit`,

@@ -5,7 +5,7 @@
 
 ## Status and date
 
-*One of proposed, accepted, superseded by `YYYY-MM-DD-slug.md`. Plus the date you
+*One of proposed, accepted, superseded by `NNNN-slug.md`. Plus the date you
 decided. Once it says accepted, this file stops changing.*
 
 ## Context

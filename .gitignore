@@ -4,24 +4,21 @@ __pycache__/
 .venv/
 venv/
 
-# Secrets. Never commit one; there is nothing here that needs one.
+# Keys. None belongs here: they live in ~/.config/dev3pack/. These are the seatbelt;
+# the pre-commit scan (scripts/scan_secrets.py) is the brake.
 .env
 *.key
 *.pem
-keypair*.json
+*keypair*.json
+id.json
+devnet-*.json
+friday-*.json
 
-# Notebooks
-.ipynb_checkpoints/
+# Recorded runs are practice, never evidence: they go here, not into intents/ receipts/ refusals/
+.recorded/
 
 # Tooling
 .ruff_cache/
 .pytest_cache/
 .mypy_cache/
 .DS_Store
-
-# The grader's output: evidence about one run, regenerated every time.
-score_report.json
-grade.txt
-
-# The course, checked out to run the grader.
-.course/

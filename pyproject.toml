@@ -1,23 +1,19 @@
 [project]
-name = "my-capstone"
+name = "my-gecko-buyer"
 version = "0.1.0"
-description = "A source-grounded research assistant: cites its sources, refuses what they do not support."
+description = "A buyer agent that pays on Solana devnet through Gecko, or says which field stopped it."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-  # The Dev3Pack course package: the grader, `capstone grade` and `capstone submit`.
-  # It follows the cohort's main branch, and uv.lock records the exact commit you
-  # run, which is what `capstone submit` reports. To move to a newer course:
-  #   uv lock --upgrade-package dev3pack-bootcamp-ai-engineering && uv sync
-  # then commit uv.lock. Nothing changes until you run that.
-  "dev3pack-bootcamp-ai-engineering @ git+https://github.com/Gecko-Academy/dev3pack-cohort-2026-09",
+  # Transactions, keys and addresses. The only place a key is read is buyer/signer.py.
+  "solders>=0.21",
+  # Only for project 03, where you serve your own check as an MCP server. The buyer's
+  # own MCP client (buyer/mcp_client.py) is stdlib, so you can read every line of it.
+  "mcp>=2",
 ]
 
-[project.optional-dependencies]
-# A real model behind the seam. `uv sync --extra anthropic`, then set
-# BOOTCAMP_PROVIDER and the key in .env (never in a committed file).
-anthropic = ["anthropic>=0.40"]
-openai = ["openai>=1.40"]
+[project.scripts]
+buyer = "buyer.cli:main"
 
 [dependency-groups]
 dev = [
@@ -25,9 +21,12 @@ dev = [
   "ruff>=0.6",
 ]
 
-[tool.uv]
-# An application, not a library: nothing here is built or published.
-package = false
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["buyer"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
@@ -37,8 +36,13 @@ addopts = "-q"
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-# The course, checked out by CI (and by you, locally) to run the grader.
-extend-exclude = [".course"]
+# Kept from the earlier template as they were; not part of the buyer.
+extend-exclude = ["workflows", "projects/01-read-the-menu"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+# agent.py imports what the step bodies need before you write them. Without this,
+# `ruff check --fix` would delete those imports while they are still unused.
+"buyer/agent.py" = ["F401"]

@@ -1,44 +1,42 @@
 # Evaluation report
 
-**Filled by:** session 7 (the baseline, and the evaluator's weakness), session 9
-(failures named from traces), session 14 (one fix, measured after).
+*Fill this on Thursday, from `make smoke` (devnet) and `make smoke-recorded` (offline).
+Numbers come from a run you did, with the command that printed them. Delete the italic
+lines when you are done.*
 
-Every number below has the command that produced it, the commit it ran on, and
-the model. A number without its command is an impression, and this file holds
-none. CI has no keys, so any number CI printed is the offline fake model's.
+## The five cases and the trap
 
-## Before
+| # | Ask | Expected | Recorded | Devnet | Evidence |
+|---|---|---|---|---|---|
+| 1 | one espresso | lands, receipt reconciles | | | `receipts/<sig8>.md` |
+| 2 | one general-admission ticket | refuse on `product` | | | `refusals/...` |
+| 3 | module 3, paid in USDC | refuse on `mint` | | | |
+| 4 | tip up to 2 USDC | refuse on `price_raw` | | | |
+| 5 | two bags of beans | refuse on `quantity` | | | |
+| trap | one latte | refuse, name quoted back | | | |
 
-- model: <!-- write this: fake, or the provider and model name from your .env -->
-- commit: <!-- write this: `git rev-parse --short HEAD` when you ran it -->
-- command: <!-- write this: the exact command, e.g. `uv run bootcamp capstone grade` -->
-- result: <!-- paste this: the pass rate or score line it printed -->
+Command: `uv run buyer --cases --recorded` gave `_/6`; `uv run buyer --cases --devnet` gave `_/6`.
 
-### The evaluator's weakness (session 7)
+## The four Friday cards
 
-<!-- write this: what the pass condition does not check. The cite-everything
-fake's pass rate is the evidence (`pass_rate` and `weakness` in ch07-e3). -->
+| Card | Expected | Result | Command |
+|---|---|---|---|
+| quantity | refuse on `quantity` | | `uv run buyer "two espressos" --devnet` |
+| budget | refuse on `price_raw` | | `uv run buyer "one espresso" --budget-raw <half> --devnet` |
+| tampered bytes | verify refuses, nothing submitted | | `... --card tampered` |
+| stale bytes | signer refuses, prepare again | | `... --card stale` |
 
-### Failures, named from traces (session 9)
+## Tests
 
-| Case | Bucket | The trace line that decided it |
-|---|---|---|
-| <!-- write this --> | <!-- e.g. retrieval_miss, instruction_following --> | <!-- paste this: the line --> |
+`uv run pytest`: _ passed, _ xfailed. The test that was red first: `<name>`, and what made
+it green.
 
-## After
+## Receipts reconciled with the ledger
 
-The fix for rank 1 of [ISSUES.md](ISSUES.md) (session 14).
+For each committed receipt: the signature exists on devnet, the buyer delta equals
+`-price_raw`, and `total_purchases` went n to n+1. Which did not, and why.
 
-- model: <!-- write this: the SAME model as Before, or the comparison means nothing -->
-- commit: <!-- write this -->
-- command: <!-- write this: the same command as Before -->
-- result: <!-- paste this -->
-- regression test: <!-- write this: its name in tests/ -->
+## What this does not prove
 
-### What got better (session 7's `improvement`)
-
-<!-- write this: one sentence naming what improved, and by how much. -->
-
-### What got worse, or could (session 7's `regression_or_risk`)
-
-<!-- write this: one sentence. "None" is almost never true. -->
+At least three lines. For example: devnet only; one unit per purchase; the check compares
+against my own pin, so a wrong pin is signed faithfully.

@@ -1,8 +1,7 @@
 name: check
 
-# Every push: install, run the contract tests, grade the agent on the practice
-# set. No secret is needed or read anywhere: the model is the offline fake, and
-# the course package comes from a public repository.
+# Every push: the key scan, lint, the offline tests, and the recorded cases as a report.
+# No secret is read anywhere: nothing here signs, and the recorded lane needs no network.
 on:
   push:
   pull_request:
@@ -13,10 +12,7 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    env:
-      # Stated, not assumed: every number this job prints is the fake model's.
-      BOOTCAMP_PROVIDER: fake
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -24,20 +20,21 @@ jobs:
       - uses: astral-sh/setup-uv@v5
         with:
           python-version: "3.11"
+      # First, before anything installs: a key in the repository fails the push.
+      - run: python3 scripts/scan_secrets.py
       - run: uv sync
-      # The contract. Green on day one: the parts the starter lacks are xfail.
-      # A red here is real: a test you had earned stopped passing, or an xfail
-      # started passing and wants its marker removed.
+      - run: uv run ruff check .
+      # Green on day one: what you have not written yet is xfail, and turns into a real
+      # test as soon as you write it.
       - run: uv run pytest
 
-  practice-score:
-    # A report, not a gate. "NOT YET" is where every starter begins, and the
-    # grader exits 1 until it passes, so its step may fail without turning the
-    # push red. The certificate is graded on a private set, not this one.
+  recorded-cases:
+    # A report, not a gate: it shows how many of the five cases and the trap already end
+    # the way their fixtures expect. It starts at 0/6 and that is the starting line.
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     env:
-      BOOTCAMP_PROVIDER: fake
+      GECKO_SOURCE: recorded
     steps:
       - uses: actions/checkout@v4
         with:
@@ -46,17 +43,17 @@ jobs:
         with:
           python-version: "3.11"
       - run: uv sync
-      - name: practice grader (fake model, no keys in CI)
+      - name: the five cases and the trap, offline
         continue-on-error: true
         run: |
           set +e
-          uv run bootcamp capstone grade | tee grade.txt
+          uv run buyer --cases | tee cases.txt
           status=${PIPESTATUS[0]}
           {
-            echo "### Practice grader: offline fake model (CI has no keys)"
+            echo "### Recorded cases (offline, no key)"
             echo
             echo '```'
-            tail -n 5 grade.txt
+            tail -n 1 cases.txt
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
           exit "$status"
