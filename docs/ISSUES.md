@@ -1,21 +1,16 @@
-# Ranked issues
+# Issues
 
-**Filled by:** session 9 (the first list, `cap01-e5`), kept current until
-session 14, which fixes rank 1 and adds its regression test.
+*Real incidents from your week, newest first. Thursday's project 04 needs at least one
+that actually happened on devnet (not one you invented). The top three are what you would
+bring up on Friday if asked "what went wrong".*
 
-At least three rows. Ranks 1, 2, 3... with no gap and no tie: two issues ranked
-1 is a list nobody prioritised. The impact is what orders it.
+*One entry per incident, in this shape. Delete this italic block when you have one.*
 
-The columns are the three fields `cap01-e5` reads.
+## YYYY-MM-DD: <what broke, in one line>
 
-| rank | issue | impact |
-|---:|---|---|
-| 1 | <!-- write this: a sentence naming the issue --> | <!-- write this: who it hurts and how badly --> |
-| 2 | <!-- write this --> | <!-- write this --> |
-| 3 | <!-- write this --> | <!-- write this --> |
-
-## Rank 1, in progress
-
-- The fix: <!-- write this (session 14) -->
-- The regression test: <!-- write this: its name in tests/ -->
-- Before and after: see [EVAL_REPORT.md](EVAL_REPORT.md).
+- **What I saw:** the exact output, pasted, and the command that printed it.
+- **What was actually wrong:** the cause, once you knew it. Not the first guess.
+- **How I found it:** the read, the log line or the test that showed it.
+- **What I changed:** the commit, and the test that is now red if it comes back.
+- **What it cost:** time, devnet SOL, a signature that landed wrong, or nothing.
+- **Would the checks have caught it?** Which field, or "no, and here is why".

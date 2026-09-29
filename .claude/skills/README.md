@@ -1,3 +1,12 @@
+# Skills in this repository
+
+| Skill | Fires on | Will not |
+|---|---|---|
+| `gecko-connect-mcp` | connecting an assistant to `https://mcp.geckovision.tech/orquestra/mcp` | put a key in a config file |
+| `gecko-buy-on-devnet` | running the buyer, a stuck buy, `expires`, a `[todo]` line | sign on mainnet, touch a key, write your checks |
+| `gecko-read-a-refusal` | `refused: true`, `REFUSED on ...`, a Gecko refusal code | retry unchanged, weaken a check |
+| `defend-my-capstone` | Friday, the defence, the six minutes, the cards | stage a card, fake a landing |
+
 # Writing your own skill
 
 A skill is instructions your agent loads when it decides they are relevant, and ignores
@@ -9,18 +18,17 @@ the rest of the time. You write one so you stop explaining the same thing every 
 .claude/skills/<skill-name>/SKILL.md
 ```
 
-One directory per skill, one `SKILL.md` inside it. Put extra files next to it and
-reference them from the body. Claude Code reads `.claude/` from the repository root when
-you start it in this folder, so a skill you add here works for anyone who clones the
-repository.
+One directory per skill, one `SKILL.md` inside it. Claude Code reads `.claude/` from the
+repository root when you start it in this folder, so a skill you add here works for
+anyone who clones the repository.
 
 ## The frontmatter
 
 ```yaml
 ---
-name: gecko-first-call
-description: Use when an agent has to call an API it has never seen and get the call right the first time. Triggers on "add this API to my agent", "integrate this API", a first call that came back 404 or 422 ...
-allowed-tools: Bash(npx:*), Bash(gecko:*), Read, Write
+name: gecko-read-a-refusal
+description: Use when a purchase was refused and the student wants to know why ...
+allowed-tools: Read, Grep, Bash(uv run buyer:*)
 ---
 ```
 
@@ -33,77 +41,48 @@ exact commands. Not an essay about the topic.
 
 ## The description decides whether the skill ever fires
 
-When the model chooses between your skills, it has not read any of them. It has read
-the `description` lines and nothing else. A skill with a perfect body and a vague
-description never loads, and you will think skills do not work.
+When the model chooses between skills, it has read the `description` lines and nothing
+else. A skill with a perfect body and a vague description never loads.
 
-So write the description for the router, not for a person browsing the folder. Name the
-situation, and name it in the words somebody actually types, including the error message
-they pasted.
-
-Same skill, two descriptions.
+So write it for the router: name the situation in the words somebody actually types,
+including the error they pasted.
 
 **Bad:**
 
 ```yaml
-description: A comprehensive guide to API integration best practices with Gecko.
+description: A comprehensive guide to Solana purchases with Gecko.
 ```
 
 **Good:**
 
 ```yaml
-description: Use when an agent has to call an API it has never seen and get the call
-  right the first time. Triggers on "add this API to my agent", "integrate this API",
-  "how do I call this", a first call that came back 404 or 422, or an OpenAPI file
-  sitting in the repo that nothing uses yet. Proves the calls offline first, for zero
-  cost and with no key. Never writes a private key or a keypair file.
+description: Use when a purchase was refused and the student wants to know why. Triggers
+  on "refused: true", "REFUSED on", "product-unknown", "receipt-failed", "why did it
+  refuse". Never retries a refusal unchanged and never weakens a check.
 ```
 
-Why the first one loses:
-
-- "comprehensive guide" describes the document. The router needs the situation.
-- "best practices" matches nothing. Nobody types it.
-- No error strings. `404` and `422` are what a stuck developer pastes, and they are the
-  cheapest match you can give the router.
-- No boundary. The second one says it never writes a key, so the router has a reason to
-  skip it for a task about key management instead of loading it and improvising.
-
-A useful check: could a person read only the description and say "yes, that is my
-problem right now"? If not, rewrite it before touching the body.
+"Comprehensive guide" describes the document; the router needs the situation. Error
+strings are the cheapest match you can give it. And the boundary in the description
+("never retries") gives the router a reason to skip the skill for the wrong job.
 
 ## Make it refuse
 
-Every skill in this folder ends with a section saying what it will not do. Write one.
+Every skill here ends with what it will not do. The failure a skill is most likely to
+cause is not doing nothing; it is confidently producing something plausible and wrong.
 
-The failure a skill is most likely to cause is not doing nothing. It is confidently
-producing something plausible and wrong. A skill that tells an agent what to say when it
-cannot verify something is worth more than one that tells it what to do when everything
-works, because the happy path was never the hard part.
-
-Two rules worth copying:
-
-- **A claim you cannot back is worse than a missing answer.** "I could not find the auth
-  scheme in the docs" costs a minute. "Uses Bearer auth", guessed, costs an afternoon
-  and sometimes a leaked key.
-- **Say which command you did not run.** Output an agent did not see and quotes anyway
-  is the worst thing it can hand you.
+- **A claim you cannot back is worse than a missing answer.**
+- **Say which command you did not run.**
 
 ## No keys, in any skill
 
-No skill in this repository contains a signing path, a private key, a seed phrase, or a
-keypair file, and none should. This repository gets cloned under deadline, and a
-repository containing a key-handling snippet eventually contains a key.
-
-Put that boundary in the `description` line, not only in the body. The router reads the
-description, so a boundary stated there keeps the skill from being loaded for a job it
-should refuse. The body only helps after it has already loaded.
+No skill in this repository contains a private key, a seed phrase, or a keypair file, and
+none should. Keys live in `~/.config/dev3pack/`, and only `buyer/signer.py` reads one.
+Put that boundary in the `description` line, not only in the body.
 
 ## Before you commit it
 
 1. Start a fresh session and type the problem in your own words, without naming the
    skill. If it does not load, the description is wrong, not the body.
-2. Run every command in the body, from a directory that is not yours, and paste what it
-   actually printed. A quickstart nobody ran cold is how this repository has burned
-   people before.
-3. Read the "will not do" section and ask whether it would have stopped the last thing
-   that went wrong.
+2. Run every command in the body and paste what it actually printed.
+3. Read the "will not" section and ask whether it would have stopped the last thing that
+   went wrong.

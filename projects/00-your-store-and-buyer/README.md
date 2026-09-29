@@ -92,8 +92,8 @@ like; there is no attempt limit and nothing is deducted for trying.
 The scored copy lives in the course folder and goes out with your submission. If you
 want the store and the buyer in your final project too, copy them into this repository
 wherever makes sense to you. There is no layout you have to follow. What matters at the
-showcase is that somebody else can clone it, run one command, and watch it refuse
-something.
+presentation on Friday 2 October is that somebody else can clone it, run one command,
+and watch it refuse something.
 
 ## Done looks like
 

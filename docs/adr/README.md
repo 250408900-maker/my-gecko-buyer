@@ -44,12 +44,14 @@ retries carefully" is a mood.
 ## Naming
 
 ```
-docs/adr/YYYY-MM-DD-slug.md
+docs/adr/NNNN-slug.md
 ```
 
-Like `docs/adr/2026-09-29-no-retry-after-paid-call.md`. The date is the day you decided,
-and it never changes even when you later supersede the record. Sorting the folder gives
-you the order you made decisions in, which is the only order that explains anything.
+Numbered in the order you decide, like `docs/adr/0002-no-retry-after-paid-call.md`.
+`0001-refusals-before-signing.md` is already here as your first one, waiting to be
+filled. The number never changes, even when you later supersede the record, so the
+folder reads in the order you made decisions, which is the only order that explains
+anything. Put the date inside the file, under "Status and date".
 
 Use a slug that says the decision, not the topic. `no-retry-after-paid-call` tells a
 reader what they will find. `retries` does not.
@@ -62,7 +64,7 @@ supersedes the old one, and you add one line at the top of the old file pointing
 forward:
 
 ```
-Status: superseded by 2026-10-01-cache-prices-for-one-block.md
+Status: superseded by 0003-cache-prices-for-one-block.md
 ```
 
 That is the only edit an accepted record ever gets.
