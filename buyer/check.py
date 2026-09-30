@@ -104,50 +104,80 @@ def check_store(intent: IntentRecord, prepared: Prepared) -> FieldResult:
 
 
 def check_product(intent: IntentRecord, prepared: Prepared) -> FieldResult:
-    """TODO: the product in the bytes is the product that was pinned.
+    """The product in the prepared purchase must match the pinned product."""
+    if prepared.product == intent.product:
+        return agree("product", intent.product)
 
-    Use case 2 ("one general-admission ticket") must refuse when the prepared purchase is
-    the VIP ticket. Decide how exact "the same product" is, and write it in your ADR.
-    """
-    raise NotYetWritten("check_product", "buyer/check.py: compare prepared.product with the pin")
+    return refuse(
+        "product",
+        intent.product,
+        prepared.product,
+    )
 
 
 def check_price(intent: IntentRecord, prepared: Prepared) -> FieldResult:
-    """TODO: the amount leaving the buyer is at or under the pinned budget.
+    """The prepared price must exist and be at or below the pinned budget."""
+    if prepared.price_raw is None:
+        return refuse(
+            "price_raw",
+            intent.budget_raw,
+            prepared.price_raw,
+        )
 
-    Field name `price_raw`. Whole numbers of the smallest unit on both sides. Use case 4
-    ("tip up to 2 USDC") must refuse a 3 USDC tip and name both numbers. What should
-    happen when the simulation reports no amount at all (`prepared.price_raw is None`)?
-    """
-    raise NotYetWritten("check_price", "buyer/check.py: compare prepared.price_raw with the budget")
+    if prepared.price_raw <= intent.budget_raw:
+        return agree("price_raw", prepared.price_raw)
+
+    return refuse(
+        "price_raw",
+        intent.budget_raw,
+        prepared.price_raw,
+    )
 
 
 def check_mint(intent: IntentRecord, prepared: Prepared) -> FieldResult:
-    """TODO: the token paid is the pinned mint, compared as an ADDRESS.
+    """The prepared mint must exactly match the pinned payment mint."""
+    if prepared.mint == intent.mint:
+        return agree("mint", intent.mint)
 
-    Use case 3 ("module 3, paid in USDC") must refuse a token called USDC at another
-    address. There is no symbol anywhere in `Prepared`, on purpose.
-    """
-    raise NotYetWritten("check_mint", "buyer/check.py: compare prepared.mint with the pin")
+    return refuse(
+        "mint",
+        intent.mint,
+        prepared.mint,
+    )
 
 
 def check_quantity(intent: IntentRecord, prepared: Prepared) -> FieldResult:
-    """TODO: the number of purchases in the bytes is the number asked for.
+    """The prepared quantity must equal the quantity that was asked for."""
 
-    `prepare_purchase` prepares one unit. Use case 5 ("two bags of beans") must refuse:
-    asked 2, prepared 1. Refusing is the honest answer; buying one is not what was asked.
-    """
-    raise NotYetWritten("check_quantity", "buyer/check.py: compare prepared.quantity with the pin")
+    if prepared.quantity == intent.quantity:
+        return agree("quantity", intent.quantity)
 
+    return refuse(
+        "quantity",
+        intent.quantity,
+        prepared.quantity,
+    )
 
 def check_destination(intent: IntentRecord, prepared: Prepared) -> FieldResult:
-    """TODO: the money goes to the store's own token account for the pinned mint.
+    """The money must go to the store's token account for the pinned mint."""
 
-    The destination is the associated token account of the authority the menu showed when
-    you pinned (`intent.store_authority`) for the pinned mint. Derive it with
-    `letmebuy.token_account(...)`; never copy it from Gecko's answer.
-    """
-    raise NotYetWritten("check_destination", "buyer/check.py: derive and compare the destination")
+    expected = str(
+        letmebuy.token_account(
+            letmebuy.Pubkey.from_string(intent.store_authority),
+            letmebuy.Pubkey.from_string(intent.mint),
+        )
+    )
+
+    if prepared.destination == expected:
+        return agree("destination", expected)
+
+    return refuse(
+        "destination",
+        expected,
+        prepared.destination,
+    )
+
+    
 
 
 #: The order is part of the design: cheap, structural checks first.
