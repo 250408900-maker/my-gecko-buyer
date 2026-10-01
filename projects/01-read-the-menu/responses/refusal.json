@@ -1,0 +1,4 @@
+﻿event: message
+data: {"jsonrpc":"2.0","id":5,"result":{"content":[{"type":"text","text":"{\"refused\": true, \"code\": \"store-unknown\", \"reason\": \"no store named 'this-store-does-not-exist' on this network: its receipts account 12ZBDrYKZbQqfQz9adPed4Krj3wVAqGUy9wLEZ1BE9zf does not exist. Absence is a refusal, never a fallback to another store. Call `list_stores` for the names that do exist.\", \"network\": \"mainnet\"}"}],"isError":false}}
+
+
