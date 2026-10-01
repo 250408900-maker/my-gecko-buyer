@@ -81,4 +81,15 @@ def check_purchase(
 
 
 if __name__ == "__main__":
-    server.run_stdio()
+    import asyncio
+    import os
+
+    port = int(os.environ.get("PORT", "8000"))
+
+    asyncio.run(
+        server.run_streamable_http_async(
+            host="0.0.0.0",
+            port=port,
+            streamable_http_path="/mcp",
+        )
+    )
