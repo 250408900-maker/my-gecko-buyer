@@ -1,31 +1,24 @@
 # The defence: Friday 2 October, six minutes
 
-*Your script. Keep the minutes, fill the right-hand column with what YOU will show and
-say, and rehearse it once on Thursday against the clock. Delete the italic lines.*
-
-One design rule: everything you show ends in a **receipt** (it landed, and this is what
+One design rule: everything I show ends in a **receipt** (it landed, and this is what
 moved) or a **refusal** (it did not sign, and this is the field that disagreed).
 
 ## The six minutes
 
 | Min | On screen | Backed by | What I say |
 |---|---|---|---|
-| 0:00 | your README's first lines: the sentence and the explorer link | `README.md` | |
-| 0:45 | your assistant with Gecko connected: `list_stores` shows *your* store | `docs/connect.md`, `store/store.json` | |
-| 1:30 | the live buy: pin, prepare, 7 ticks, sign, verify, submit | `uv run buyer "one espresso" --devnet` | |
-| 2:30 | the landing: the explorer, then the receipt with ledger deltas | `receipts/<sig8>.md` | |
-| 3:15 | **the injected failure**: the judge draws a card; your buyer refuses and signs nothing | `buyer/check.py`, `refusals/` | |
-| 4:30 | tests and the five-case table; one test that was red first | `uv run pytest`, `docs/EVAL_REPORT.md` | |
-| 5:15 | the ADR: the decision, and what would reverse it | `docs/adr/0001-refusals-before-signing.md` | |
-
-Friday participants with a capped mainnet wallet from the founder may do minute 1:30 on
-mainnet against geckocoffee instead (see "Friday on mainnet" below). Everyone else stays
-on devnet, and that is the whole defence.
+| 0:00 | README first lines and explorer link | `README.md` | My buyer turns a natural-language purchase request into a pinned intent. It either completes the purchase and produces a reconciled receipt, or refuses before signing when something does not match. |
+| 0:45 | Gecko `list_stores` showing my store | `docs/connect.md`, `store/store.json` | This is my store and its products. Gecko provides the transaction data, but it never holds my private signing key. |
+| 1:30 | Live buy: pin, prepare, seven checks, sign, verify, submit | `uv run buyer "one espresso" --devnet` | The request is pinned before transaction bytes exist. The prepared purchase is checked field by field. Only after all seven checks pass do I sign locally, verify the signed transaction, and submit it. |
+| 2:30 | Explorer and receipt | `receipts/<sig8>.md` | This shows the purchase landed on devnet. The receipt is reconciled using ledger reads: the buyer balance decreased, the store balance increased, and total purchases increased. |
+| 3:15 | Injected failure/card | `buyer/check.py`, `refusals/` | Now I inject a failure. If a checked field disagrees with the pinned intent, the buyer refuses. Nothing is submitted, and the refusal records the field plus the asked and found values. |
+| 4:30 | Tests and evaluation report | `uv run pytest`, `docs/EVAL_REPORT.md` | I also have recorded cases that use the same buyer code path without depending on the network. This gives me a rollback demonstration if devnet or the hosted MCP is unavailable. |
+| 5:15 | ADR | `docs/adr/0001-refusals-before-signing.md` | My design decision is to refuse before signing whenever a safety check fails. I would only change this if another mechanism could provide the same guarantee that the transaction matches the pinned intent before authorization. |
 
 ## The four cards
 
-The judge draws one, face down. You do not know which, so you cannot stage it; your
-buyer has to refuse it on its own.
+The judge draws one, face down. I do not know which card will be selected, so the buyer
+must detect and refuse the problem itself.
 
 | Card | What the judge does | The command | The expected refusal |
 |---|---|---|---|
@@ -34,39 +27,7 @@ buyer has to refuse it on its own.
 | **Tampered bytes** | changes one byte of the signed transaction before verify | `uv run buyer "one espresso" --devnet --card tampered` | `signed bytes`: `verify_signed_transaction` refuses, so there is no submit |
 | **Stale bytes** | waits past `expires`, then asks you to sign | `uv run buyer "one espresso" --devnet --card stale` | `blockhash`: the bytes expired; prepare again, never re-sign |
 
-Rehearse all four offline first, with no network and no key:
+Rehearse all four offline first:
 
 ```bash
-uv run buyer --cards --recorded      # 4/4 once your steps and checks are written
-```
-
-## Before you go on stage
-
-- [ ] One devnet receipt is **committed** (`receipts/<sig8>.md`). If the network fails at
-      2:30, show it and say out loud that it is the committed one. Same code path, honest.
-- [ ] `uv run buyer --cases --recorded` prints 6/6 and `--cards` prints 4/4.
-- [ ] `uv run pytest` is green and `python3 scripts/scan_secrets.py` finds nothing.
-- [ ] Your devnet buyer holds SOL and your token (`solana balance -u devnet <buyer>`).
-- [ ] Your assistant's connector is live; you tried `list_stores` today, not yesterday.
-
-## Friday on mainnet (only with a founder-issued wallet)
-
-If you are given a capped wallet: it is a keypair file handed to you on Friday, holding
-three espressos' worth of USDC and a little SOL, and nothing else. It never enters your
-repository, and you give it back after.
-
-```bash
-GECKO_MAINNET_KEYPAIR=<the file you were handed> \
-  uv run buyer "one espresso" --mainnet --store geckocoffee --mainnet-budget-raw 100000
-```
-
-The signer refuses to sign on mainnet without `--mainnet-budget-raw`, refuses any
-purchase above it, and checks mainnet's genesis hash before the signature. The wallet's
-balance is the hard cap: a fourth espresso cannot be paid for.
-
-## Questions you should be ready for
-
-- Why does Gecko never hold your key, and what would change if it did?
-- Which of your seven checks would you drop first, and what risk would you accept?
-- Your buyer refused. How does the person at the chat know it was right to?
-- What does your receipt NOT prove?
+uv run buyer --cards --recorded

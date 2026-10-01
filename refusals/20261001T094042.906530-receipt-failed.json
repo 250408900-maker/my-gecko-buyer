@@ -1,0 +1,13 @@
+{
+  "ask": "tip up to 2 USDC",
+  "step": "prepare",
+  "field": "gecko:receipt-failed",
+  "asked": null,
+  "found": null,
+  "where": "gecko",
+  "note": "the simulation did not pass, so no transaction is returned: a transaction that reverts against observed state would only cost you a fee on chain. Likely cause: sender_token_account Ai74pmi3bNE8f85CoXwGkaaeFoJGm9FAgm3DFoiyHrKJ does not exist on devnet \u2014 the buyer holds no token account for the store'",
+  "signed": false,
+  "intent": "intents\\20261001T094041.967061-tip-up-to-2-usdc.json",
+  "source": "devnet",
+  "at": "2026-10-01T09:40:42.907525+00:00"
+}
