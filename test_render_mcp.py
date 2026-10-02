@@ -3,7 +3,6 @@ import asyncio
 from mcp import ClientSession
 from mcp.client.streamable_http import streamable_http_client
 
-
 URL = "https://manaal.onrender.com/mcp"
 
 
