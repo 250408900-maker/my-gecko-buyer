@@ -10,6 +10,8 @@ dependencies = [
   # Only for project 03, where you serve your own check as an MCP server. The buyer's
   # own MCP client (buyer/mcp_client.py) is stdlib, so you can read every line of it.
   "mcp>=2",
+  "fastapi>=0.142.2",
+  "uvicorn>=0.54.0",
 ]
 
 [project.scripts]
